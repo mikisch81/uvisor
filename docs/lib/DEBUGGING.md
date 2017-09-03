@@ -184,3 +184,40 @@ If you are using ST-LINK, please refer to the [STMicroelectronics website](http:
 
 If instead you want to connect your debugger to the JTAG port, you must wire the needed pins to your connector. This [guide](https://www.segger.com/admin/uploads/evalBoardDocs/AN00015_ConnectingJLinkToSTM32F429Discovery.pdf) explains how to do that in detail. The guide is specific to the J-Link connectors, but you can apply it to other connectors.
 
+## Debugging with Eclipse
+
+* Make sure [GNU ARM Eclipse plugins](http://gnuarmeclipse.sourceforge.net/updates) is installed, if not then install:
+
+  `help -> Install New software -> Add http://gnuarmeclipse.sourceforge.net/updates`
+
+### Eclipse PyOCD debugger configuration
+
+* Create a new *GDB PyOCD Debugging* configuration:
+
+  `Run -> Debug configurations -> New`
+  
+  ![](../img/new_pyocd_cfg.png)
+  
+* **Main** tab configuration
+  * Give the path to the .elf of the application in *C/C++ Application*.
+  * Set *Disable auto build* if your eclipse project does not build the application.
+  
+  ![](../img/pyocd_cfg_main.png)
+  
+* **Debugger** tab configuration
+  * Keep *pyOCD Setup* as-is (PyOCD binary has to be in the PATH).
+  * In *GDB Client Setup* set the *Executable* to **arm-none-eabi-gdb** (which needs to be in the PATH as well).
+  
+  ![](../img/pyocd_cfg_debugger.png)
+
+* **Startup** tab configuration
+  * In *load Symbols and Executable* se both to the location of the application .elf file.
+  * In *Run/Restart Commands* add `call uvisor_api.debug_semihosting_enable()` to the text box.
+    * If you wish to debug uVisor core as well you have to add the uVisor symbols, so add this to the text box:
+    ```bash
+    add-symbol-file  mbedos/features/FEATURE_UVISOR/importer/TARGET_IGNORE/uvisor/platform/${family}/debug/configuration_${family}_${core_version}_${sram_origin}.elf __uvisor_main_start
+    ```
+
+  ![](../img/pyocd_cfg_startup.png)
+
+* Now press **Debug** and the debugger will start and stop at a breakpoint in `main()`.
