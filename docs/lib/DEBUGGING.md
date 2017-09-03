@@ -40,13 +40,21 @@ $ mbed compile -m ${your_target} -t GCC_ARM -c --profile mbed-os/tools/profiles/
 
 The `--profile mbed-os/tools/profiles/debug.json` option ensures that the build system enables debug symbols and disables optimizations. In addition, it ensures the selection of the debug build of uVisor, which enables the uVisor runtime messages.
 
-Now start the GDB server. This step changes depending on which debugger you are using. If you are using a J-Link debugger, run:
+Now start the GDB server. This step changes depending on which debugger you are using.
 
-```bash
-$ JLinkGDBServer -device ${device_name} -if ${interface}
-```
+* If you are using a J-Link debugger, run:
 
-In the command above, `${device_name}` and `${interface}` are J-Link-specific. Please see the [J-Link documentation](https://www.segger.com/admin/uploads/productDocs/UM08001_JLink.pdf) and the list of [supported devices](https://www.segger.com/jlink_supported_devices.html).
+  ```bash
+  $ JLinkGDBServer -device ${device_name} -if ${interface}
+  ```
+
+  In the command above, `${device_name}` and `${interface}` are J-Link-specific. Please see the [J-Link documentation](https://www.segger.com/admin/uploads/productDocs/UM08001_JLink.pdf) and the list of [supported devices](https://www.segger.com/jlink_supported_devices.html).
+
+* If you are using a PyOCD debugger, run:
+
+  ```bash
+  $ pyocd-gdbserver --semihosting
+  ```
 
 To flash the device, use GDB, even if your device allows drag and drop flashing. This allows you to potentially group several commands together into a startup GDB script.
 
@@ -60,22 +68,44 @@ License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 (gdb) ...
 ```
 
-The following is the minimum set of commands you need to send to the device to flash and run the binary (replace '2331' by '3333' if you use pyOCD or OpenOCD as a debug server):
+The following is the minimum set of commands you need to send to the device to flash and run the binary:
 
-```bash
-(gdb) target remote localhost:2331
-(gdb) monitor endian little
-(gdb) monitor reset
-(gdb) monitor halt
-(gdb) monitor semihosting enable
-(gdb) monitor speed 1000
-(gdb) monitor loadbin BUILD/${target}/${your_app}.bin 0
-(gdb) monitor flash device = ${device_name}
-(gdb) load BUILD/${target}/${your_app}.elf
-(gdb) file BUILD/${target}/${your_app}.elf
-(gdb) call uvisor_api.debug_semihosting_enable()
-```
-the call to 'uvisor_api.debug_semihosting_enable' is required to enable semihosting debug printing.
+* For J-Link debugger:
+
+  ```bash
+  (gdb) target remote localhost:2331
+  (gdb) monitor endian little
+  (gdb) monitor reset
+  (gdb) monitor halt
+  (gdb) monitor semihosting enable
+  (gdb) monitor speed 1000
+  (gdb) monitor loadbin BUILD/${target}/${your_app}.bin 0
+  (gdb) monitor flash device = ${device_name}
+  (gdb) load BUILD/${target}/${your_app}.elf
+  (gdb) file BUILD/${target}/${your_app}.elf
+  (gdb) call uvisor_api.debug_semihosting_enable()
+  ```
+
+* For PyOCD debugger:
+
+  ```bash
+  (gdb) target remote localhost:3333
+  (gdb) monitor reset
+  (gdb) monitor halt
+  (gdb) load BUILD/${target}/${your_app}.elf
+  (gdb) file BUILD/${target}/${your_app}.elf
+  (gdb) call uvisor_api.debug_semihosting_enable()
+  ```
+
+---
+**IMPORTANT**
+* If you wish to debug uVisor core as well you have to add the uVisor symbols:
+  ```bash
+  (gdb) add-symbol-file   mbedos/features/FEATURE_UVISOR/importer/TARGET_IGNORE/uvisor/platform/${family}/debug/configuration_${family}_${core_version}_${sram_origin}.elf __uvisor_main_start
+  ```
+
+* The call to `uvisor_api.debug_semihosting_enable` is required to enable semihosting debug printing.
+---
 
 From here on, if you send the `c` command, the program will run indefinitely. Of course, you can configure other addresses and ports for the target. Please refer to the [GDB documentation](http://www.gnu.org/software/gdb/documentation/) for details about the GDB commands.
 
