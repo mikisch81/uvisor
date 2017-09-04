@@ -100,9 +100,7 @@ The following is the minimum set of commands you need to send to the device to f
 ---
 **IMPORTANT**
 * The call to `uvisor_api.debug_semihosting_enable` is required to enable semihosting debug printing.
-
   The reason for this "safety latch" is that the device faults on semihosting prints if a debugger is not connected.
-  
   On some devices it's hard to tell programmatically if a debugger is connected so semihosting is disabled by default and is enabled using this "safety latch".
 
 * If you wish to debug uVisor core as well you have to add the uVisor symbols:
