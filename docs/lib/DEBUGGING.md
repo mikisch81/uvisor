@@ -192,7 +192,7 @@ If instead you want to connect your debugger to the JTAG port, you must wire the
 
 ### Eclipse PyOCD debugger configuration
 
-* Create a new *GDB PyOCD Debugging* configuration:
+* Create a new *GDB PyOCD Debugging* configuration (or *GDB SEGGER J-Link Debugging* for J-Link debugger):
 
   `Run -> Debug configurations -> New`
   
@@ -205,11 +205,19 @@ If instead you want to connect your debugger to the JTAG port, you must wire the
   ![](../img/pyocd_cfg_main.png)
   
 * **Debugger** tab configuration
-  * Keep *pyOCD Setup* as-is (PyOCD binary has to be in the PATH).
-  * In *GDB Client Setup* set the *Executable* to **arm-none-eabi-gdb** (which needs to be in the PATH as well).
+  * PyOCD
+    * Keep *pyOCD Setup* as-is (make sure ${pyocd_path} is set to the correct path in *Variables...*).
+    * In *GDB Client Setup* set the *Executable* to **arm-none-eabi-gdb** (which needs to be in the PATH).
   
-  ![](../img/pyocd_cfg_debugger.png)
+    ![](../img/pyocd_cfg_debugger.png)
 
+  * J-Link
+    * Keep *J-Link GDB Server Setup* as-is (make sure ${jlink_path} is set to the correct path in *Variables...*).
+    * In *Device name* write the appropriate device name.
+    * In *GDB Client Setup* set the *Executable* to **arm-none-eabi-gdb** (which needs to be in the PATH).
+  
+    ![](../img/jlink_cfg_debugger.png)
+  
 * **Startup** tab configuration
   * In *load Symbols and Executable* se both to the location of the application .elf file.
   * In *Run/Restart Commands* add `call uvisor_api.debug_semihosting_enable()` to the text box.
@@ -217,7 +225,13 @@ If instead you want to connect your debugger to the JTAG port, you must wire the
     ```bash
     add-symbol-file  mbedos/features/FEATURE_UVISOR/importer/TARGET_IGNORE/uvisor/platform/${family}/debug/configuration_${family}_${core_version}_${sram_origin}.elf __uvisor_main_start
     ```
-
+  * For J-link debugger unset the *Enable SWO* checkbox.
+  
+  **PyOCD**
+  
   ![](../img/pyocd_cfg_startup.png)
 
+  **J-Link**
+  
+  ![](../img/jlink_cfg_startup.png)
 * Now press **Debug** and the debugger will start and stop at a breakpoint in `main()`.
