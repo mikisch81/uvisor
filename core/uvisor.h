@@ -52,13 +52,22 @@
 /* unprivileged box as called by privileged code */
 typedef void (*UnprivilegedBoxEntry)(void);
 
+UVISOR_FORCEINLINE void uvisor_noreturn(void)
+{
+    volatile int var = 1;
+    while(var);
+}
+
 #ifdef  NDEBUG
 #define DPRINTF(...) {}
 #define assert(...)
 #else /*NDEBUG*/
 #define DPRINTF dprintf
-#define assert(x) if(!(x)){dprintf("HALTED(%s:%i): assert(%s)\n",\
-                                   __FILE__, __LINE__, #x);while(1);}
+#define assert(x) \
+    if (!(x)) { \
+        dprintf("HALTED(%s:%i): assert(%s)\n", __FILE__, __LINE__, #x); \
+        uvisor_noreturn(); \
+    }
 #endif/*NDEBUG*/
 
 #ifdef  CHANNEL_DEBUG
